@@ -13,7 +13,10 @@ function left_pad(str, length, pad_char) {
  *
  * @class
  * @name jsbitstream
- * @namespace
+ * @author Konrad Kiss
+ * @copyright Copyright � 2012 Konrad Kiss
+ * @license MIT License (see LICENSE.txt)
+ * @version 1.1 - converted to a class by Sunil Vanmullem
  */
 class jsbitstream {
 	data = ""
