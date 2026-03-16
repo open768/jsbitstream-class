@@ -6,6 +6,14 @@ function left_pad(str, length, pad_char) {
 	return str.padStart(length, pad_char)
 }
 
+class bitstreamTypes{
+	static TYPE_4BIT_NUMERIC = 5
+	static TYPE_5BIT_LOWERCASE = 4
+	static TYPE_6BIT_ALPHANUMERIC = 3
+	static TYPE_7BIT_LOW_ASCII = 2
+	static TYPE_8BIT_ASCII = 1
+	static TYPE_16BIT_UNICODE = 0
+}
 /**
  * jsbitstream is a Javascript class to read and write bit level data into and out of a stream.
  * It was created to preserve as many bits and bytes during network communication as possible without sacrificing
@@ -51,7 +59,7 @@ class jsbitstream {
 
 		while (l--) {
 			switch (typeId) {
-				case 5: // numeric 4 bit
+				case bitstreamTypes.TYPE_4BIT_NUMERIC: // numeric 4 bit
 					c = this.readBits(4).data.charCodeAt(0) >> 12
 					if (c === 4)
 						c = 32
@@ -59,7 +67,7 @@ class jsbitstream {
 						c += 43
 
 					break
-				case 4: // lowercase alpha 5 bit
+				case bitstreamTypes.TYPE_5BIT_LOWERCASE: // lowercase alpha 5 bit
 					c = this.readBits(5).data.charCodeAt(0) >> 11
 					if (c === 26) // space
 						c = 32
@@ -77,7 +85,7 @@ class jsbitstream {
 						c += 97 // a-z
 
 					break
-				case 3: // alphanumeric 6 bit
+				case bitstreamTypes.TYPE_6BIT_ALPHANUMERIC: // alphanumeric 6 bit
 					c = this.readBits(6).data.charCodeAt(0) >> 10
 					if (c === 62) // ,
 						c = 44
@@ -94,10 +102,10 @@ class jsbitstream {
 					}
 
 					break
-				case 2: // low ascii 7 bit
+				case bitstreamTypes.TYPE_7BIT_LOW_ASCII: // low ascii 7 bit
 					c = this.readBits(7).data.charCodeAt(0) >> 9
 					break
-				case 1: // ascii 8 bit
+				case bitstreamTypes.TYPE_8BIT_ASCII: // ascii 8 bit
 					c = this.readBits(8).data.charCodeAt(0) >> 8
 					break
 				default: // unicode
@@ -169,7 +177,7 @@ class jsbitstream {
 		for (t = 0; t < val.length; t++) {
 			c = val.charCodeAt(t)
 			switch (typeId) {
-				case 5: // 5 - numeric only (4 bits) (0-15) - includes: +,-.space
+				case bitstreamTypes.TYPE_4BIT_NUMERIC: // 5 - numeric only (4 bits) (0-15) - includes: +,-.space
 					if (c === 32)
 						c = 4 // space instead of /
 					else
@@ -177,7 +185,7 @@ class jsbitstream {
 
 					this.writeBits(String.fromCharCode((c << 12) & 0xF000), 4)
 					break
-				case 4: // 4 - lowercase alpha only (5 bits) (0-31) - includes space|'-.,
+				case bitstreamTypes.TYPE_5BIT_LOWERCASE: // 4 - lowercase alpha only (5 bits) (0-31) - includes space|'-.,
 					if (c === 32) // space
 						c = 26
 					else if (c === 124) // |
@@ -195,7 +203,7 @@ class jsbitstream {
 
 					this.writeBits(String.fromCharCode((c << 11) & 0xF800), 5)
 					break
-				case 3: // 3 - alphanumeric only (6 bits) (0-63) - includes , and space
+				case bitstreamTypes.TYPE_6BIT_ALPHANUMERIC: // 3 - alphanumeric only (6 bits) (0-63) - includes , and space
 					if (c === 44) // ,
 						c = 62
 					else if (c === 32) // space
@@ -212,10 +220,10 @@ class jsbitstream {
 
 					this.writeBits(String.fromCharCode((c << 10) & 0xFC00), 6)
 					break
-				case 2: // 2 - low ascii only (7 bit) (0-127)
+				case bitstreamTypes.TYPE_7BIT_LOW_ASCII: // 2 - low ascii only (7 bit) (0-127)
 					this.writeBits(String.fromCharCode((c << 9) & 0xFE00), 7)
 					break
-				case 1: // 1 - ascii only (8 bits)
+				case bitstreamTypes.TYPE_8BIT_ASCII: // 1 - ascii only (8 bits)
 					this.writeBits(String.fromCharCode((c << 8) & 0xFF00), 8)
 					break
 				default: // 0 - unicode (16 bits)
@@ -465,11 +473,7 @@ class jsbitstream {
 		// TODO: does this work with node?
 		var readStream = new jsbitstream(),
 			toReadCount,
-			prevBitOffset = this.bitOffset,
-			originalCount = count,
-			firstChar = "",
-			readMsg,
-			r
+			firstChar = ""
 
 
 		if (this.bitOffset > 0) {
@@ -566,10 +570,10 @@ class jsbitstream {
 			this.data = this.data.substr(0, targetOffset) + String.fromCharCode(targetValue & 0xFFFF)
 
 			if (nextBitsToWrite > 0) {
-			// the value to be written has overflown the target character
-			// add a new zero character at the end of the stream
-			// and shift the remaining bits that need to be written all the way to the left
-			// before writing it into the stream's new character
+				// the value to be written has overflown the target character
+				// add a new zero character at the end of the stream
+				// and shift the remaining bits that need to be written all the way to the left
+				// before writing it into the stream's new character
 				this.data += "\u0000"
 				targetValue = nextValue << (16 - nextBitsToWrite)
 				this.data = this.data.substr(0, targetOffset + 1) + String.fromCharCode(targetValue & 0xFFFF)
