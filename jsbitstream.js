@@ -462,9 +462,6 @@ class jsbitstream {
 			r
 
 
-		cDebug.write( "readBits reading " + originalCount + " bit(s) with a bit offset of " + prevBitOffset + " within the first character")
-
-
 		if (this.bitOffset > 0) {
 			toReadCount = Math.min(16 - this.bitOffset, count)
 
@@ -472,8 +469,6 @@ class jsbitstream {
 			//@ts-expect-error
 			firstChar = ((this.data.charCodeAt(0) << this.bitOffset) & ((Math.pow(2, toReadCount) - 1) << (16 - toReadCount)))
 
-			//@ts-expect-error
-			cDebug.write( "readBits initial offset read: " + left_pad(firstChar.toString(2), toReadCount, "0").substr(0, toReadCount))
 
 			//@ts-expect-error
 			readStream.writeBits(String.fromCharCode(firstChar), toReadCount)
@@ -502,29 +497,12 @@ class jsbitstream {
 			count -= toReadCount
 		}
 
-		if (cDebug.is_debugging() && originalCount > 0) {
-			readMsg = "Read '"
-			if (firstChar.length > 0)
-				readMsg += left_pad(firstChar.charCodeAt(0).toString(2), 16 - prevBitOffset, "0") + " "
-
-			for (r = 0; r < readStream.data.length; r++)
-				readMsg += left_pad(readStream.data.charCodeAt(r).toString(2), 16, "0").substr(0, Math.min(originalCount - r * 16, 16)) + " "
-
-			readMsg = readMsg.trim()
-			readMsg += "'"
-			cDebug.write( readMsg)
-		}
-
 		// clean up if no data is left in the stream
 		if (this.size() === 0) {
 			this.data = ""
 			this.bitOffset = 0
 			this.lastCharBits = 0
 		}
-
-
-		cDebug.write( false)
-
 
 		return readStream
 	}
@@ -587,33 +565,10 @@ class jsbitstream {
 				this.data = this.data.substr(0, targetOffset + 1) + String.fromCharCode(targetValue & 0xFFFF)
 			}
 
-			{
-				if (bitCount > 32)
-					cDebug.write( left_pad(((writeBuffer.charCodeAt(0) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(0) & 0x00FF).toString(16), 2, "0") + " " +
-                    left_pad(((writeBuffer.charCodeAt(1) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(1) & 0x00FF).toString(16), 2, "0") + " " +
-                    left_pad(((writeBuffer.charCodeAt(2) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(2) & 0x00FF).toString(16), 2, "0") + " " +
-                    left_pad(((writeBuffer.charCodeAt(3) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(3) & 0x00FF).toString(16), 2, "0"))
-				else if (bitCount > 16)
-					cDebug.write( left_pad(((writeBuffer.charCodeAt(0) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(0) & 0x00FF).toString(16), 2, "0") + " " +
-                    left_pad(((writeBuffer.charCodeAt(1) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(1) & 0x00FF).toString(16), 2, "0"))
-				else if (bitCount > 8)
-					cDebug.write( left_pad(((writeBuffer.charCodeAt(0) & 0xFF00) >> 8).toString(16), 2, "0") + " " + left_pad((writeBuffer.charCodeAt(0) & 0x00FF).toString(16), 2, "0"))
-				else if (bitCount > 1)
-					cDebug.write( left_pad(((writeBuffer.charCodeAt(0) & 0xFF00) >> 8).toString(16), 2, "0"))
-				else
-					cDebug.write( left_pad(((writeBuffer.charCodeAt(0) & 0x8000) >> 15).toString(16), 1, "0"))
-
-				cDebug.write( "writeBits preparing to write " + bitsToRead + " of " + bitCount + " bit(s)" + (writeBufferPointer > 0 ? " at read offset " + writeBufferPointer : ""))
-				cDebug.write( "writeBits writing " + bitsToRead + " bit(s) with a value of '" + left_pad(writeBuffer.charCodeAt((writeBufferPointer / 16) >> 0).toString(2), 16, "0").substr(0, bitsToRead) + "' from " + targetOffset + "." + (this.lastCharBits) + " to " + ((nextBitsToWrite > 0) ? targetOffset + 1 : targetOffset) + "." + ((this.lastCharBits + bitsToRead) % 16))
-			}
-
 			this.lastCharBits = (this.lastCharBits + bitsToRead) % 16
 			writeBufferPointer += bitsToRead
 
-			{
-				this.lastBitsAdded = bitsToRead
-				cDebug.write( true)
-			}
+			this.lastBitsAdded = bitsToRead
 		}
 	}
 
