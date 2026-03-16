@@ -369,6 +369,34 @@ class jsbitstream {
 	}
 
 	/**
+	 * Reads an arbitrary-length unsigned number from the bitstream.
+	 * @public
+	 * @param count {Number} The number of bits to read (1-max safe Number bits).
+	 * @return {Number} The unsigned number read from the bitstream.
+	 */
+	readUBits(count) {
+
+		var maxSafeBits = cCommon.intBitSize(Number.MAX_SAFE_INTEGER) + 1
+
+		if (count < 1 || count > maxSafeBits)
+			throw new RangeError("readUBits(count) supports bit counts from 1 to " + maxSafeBits + "")
+
+
+		var value = 0
+		var bit
+		var i
+
+
+		for (i = 0; i < count; i++) {
+			bit = this.readFlag() ? 1 : 0
+			value = (value << 1) | bit
+		}
+
+		return Number(value)
+	}
+
+
+	/**
 	 * Writes a half-byte (4 bits) value into the bitstream.
 	 * @public
 	 * @param val_u4 The number (4 bits) to be written into the bitstream.
@@ -436,10 +464,13 @@ class jsbitstream {
 			toReadCount = Math.min(16 - this.bitOffset, count)
 
 			// copy the first character using only valid bits
+			//@ts-expect-error
 			firstChar = ((this.data.charCodeAt(0) << this.bitOffset) & ((Math.pow(2, toReadCount) - 1) << (16 - toReadCount)))
 
+			//@ts-expect-error
 			cDebug.write( "readBits initial offset read: " + left_pad(firstChar.toString(2), toReadCount, "0").substr(0, toReadCount))
 
+			//@ts-expect-error
 			readStream.writeBits(String.fromCharCode(firstChar), toReadCount)
 
 			this.bitOffset = (this.bitOffset + toReadCount) % 16
@@ -593,6 +624,3 @@ class jsbitstream {
 
 
 }
-
-
-module.exports = jsbitstream
