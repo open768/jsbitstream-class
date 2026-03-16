@@ -22,7 +22,7 @@ class bitstreamTypes{
  * @class
  * @name jsbitstream
  * @author Konrad Kiss
- * @copyright Copyright � 2012 Konrad Kiss
+ * @copyright Copyright � 2012 Konrad Kiss and modifications ©️ 2026 Sunil Vanmullem cluck@chickenkatsu.co.uk
  * @license MIT License (see LICENSE.txt)
  * @version 1.1 - converted to a class by Sunil Vanmullem
  */
