@@ -577,9 +577,8 @@ class jsbitstream {
 	 * @return {Number} teh number of bits within the stream.
 	 */
 	size() {
-
-
-		return (this.data.length * 16) - this.bitOffset - ((16 - this.lastCharBits) % 16)
+		var iVal = (this.data.length * 16) - this.bitOffset - ((16 - this.lastCharBits) % 16)
+		return iVal
 	}
 
 
