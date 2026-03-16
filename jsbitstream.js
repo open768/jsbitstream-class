@@ -22,6 +22,7 @@ class jsbitstream {
 	data = ""
 	bitOffset = 0
 	lastCharBits = 0
+	_backup = ""
 
 	/**
 	 * Reads an arbitrary string from the stream.
@@ -31,6 +32,15 @@ class jsbitstream {
 	reset_offset(){
 		this.bitOffset = 0
 		this.lastCharBits = 0
+	}
+
+	backup_data(){
+		this._backup = this.data
+	}
+
+	restore_data(){
+		this.data = this._backup
+		this.reset_offset()
 	}
 
 	readString() {
