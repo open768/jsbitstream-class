@@ -30,13 +30,11 @@ class jsbitstream {
 	data = ""
 	bitOffset = 0
 	lastCharBits = 0
-	_backup = ""
+	_backup = null
 
-	/**
-	 * Reads an arbitrary string from the stream.
-	 * @public
-	 * @return {String} The string read.
-	 */
+	//**********************************************************************
+	//* additions by SV
+	//**********************************************************************
 	reset_offset(){
 		this.bitOffset = 0
 		this.lastCharBits = 0
@@ -46,11 +44,24 @@ class jsbitstream {
 		this._backup = this.data
 	}
 
-	restore_data(){
+	restore_data( pbDeleteBackup = false ){
+		if (!this._backup == null)
+			throw new Error("No backup data to restore")
+
 		this.data = this._backup
 		this.reset_offset()
+
+		if (pbDeleteBackup)
+			this._backup = null
 	}
 
+	//**********************************************************************
+	//* end of additions by SV
+	//**********************************************************************
+	/**
+	 *
+	 * @returns {String} The string read from the bitstream.
+	 */
 	readString() {
 		var typeId = this.readU4(),
 			l = this.readU16(),
