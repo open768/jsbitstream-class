@@ -14,6 +14,7 @@ class bitstreamTypes{
 	static TYPE_8BIT_ASCII = 1
 	static TYPE_16BIT_UNICODE = 0
 }
+
 /**
  * jsbitstream is a Javascript class to read and write bit level data into and out of a stream.
  * It was created to preserve as many bits and bytes during network communication as possible without sacrificing
@@ -58,6 +59,8 @@ class jsbitstream {
 	//**********************************************************************
 	//* end of additions by SV
 	//**********************************************************************
+
+	//******** STRING **************************************************************
 	/**
 	 *
 	 * @returns {String} The string read from the bitstream.
@@ -246,6 +249,7 @@ class jsbitstream {
 		return val
 	}
 
+	//******** Int **************************************************************
 	/**
 	 * Reads a compressed integer from the bitstream. Useful for numbers where small (<256) and
 	 * large (>65536 or >4294967296) values fluctuate.
@@ -293,6 +297,7 @@ class jsbitstream {
 		return val
 	}
 
+	//******** FLOAT **************************************************************
 	/**
 	 * Reads a relative float (0-1) value from the bitstream with 8 bit precision.
 	 * @public
@@ -318,6 +323,7 @@ class jsbitstream {
 		return val_float
 	}
 
+	//******** U32 **************************************************************
 	/**
 	 * Reads a 32 bit value from the bitstream.
 	 * @public
@@ -343,6 +349,7 @@ class jsbitstream {
 		return val_u32
 	}
 
+	//******** U16  **************************************************************
 	/**
 	 * Reads a 16 bit number from the bitstream.
 	 * @public
@@ -367,6 +374,7 @@ class jsbitstream {
 		return val_u16
 	}
 
+	//******** U8  **************************************************************
 	/**
 	 * Reads a byte (8 bits) from the bitstream.
 	 * @public
@@ -396,6 +404,8 @@ class jsbitstream {
 	 * @public
 	 * @return {Number} The 4 bit number read from the bitstream.
 	 */
+
+	//******** U16  **************************************************************
 	readU4() {
 
 
@@ -403,11 +413,27 @@ class jsbitstream {
 	}
 
 	/**
+	 * Writes a half-byte (4 bits) value into the bitstream.
+	 * @public
+	 * @param val_u4 The number (4 bits) to be written into the bitstream.
+	 * @return {Number} The original number passed as an argument.
+	 */
+	writeU4(val_u4) {
+
+
+		this.writeBits(String.fromCharCode((val_u4 & 0x0F) * 0x1000), 4)
+		return val_u4
+	}
+
+	//******** UBits  **************************************************************
+	/**
 	 * Reads an arbitrary-length unsigned number from the bitstream.
+	 * reads the most significant bit first
 	 * @public
 	 * @param piBitLen {Number} The number of bits to read (1-max safe Number bits).
 	 * @return {Number} The unsigned number read from the bitstream.
 	 */
+
 	readUBits(piBitLen) {
 
 		var maxSafeBits = cCommon.intBitSize(Number.MAX_SAFE_INTEGER) + 1
@@ -429,20 +455,44 @@ class jsbitstream {
 		return Number(value)
 	}
 
-
 	/**
-	 * Writes a half-byte (4 bits) value into the bitstream.
+	 * reverse bits of an arbitrary-length unsigned number.
 	 * @public
-	 * @param val_u4 The number (4 bits) to be written into the bitstream.
-	 * @return {Number} The original number passed as an argument.
+	 * @param {number} piNum The unsigned number to reverse bits for.
+	 * @param {number} piBitLen The number of bits .
+	 * @return {number} 
 	 */
-	writeU4(val_u4) {
+	_reverseBits(piNum, piBitLen) {
+		var iRev = 0 //contains reversed number
+		
+		var iLSB	//least significant bit
+		for (var i = 0; i < piBitLen; i++) {
+			iLSB = (piNum >> i) & 1
+			iRev = iRev | iLSB
+			iRev = iRev << 1
+		}
+		return iRev
+	}
+	
+	/**
+	 * writes an arbitrary-length unsigned number into the bitstream.
+	 * @public
+	 * @param {number} piNum The unsigned number to write.
+	 * @param {number} piBitLen The number of bits .
+	 * @return {void} 
+	 */
+	writeUBits(piNum, piBitLen) {
+		//reverse the number so that its most significant bit is written first later
+		var iRev = this._reverseBits(piNum, piBitLen)
 
-
-		this.writeBits(String.fromCharCode((val_u4 & 0x0F) * 0x1000), 4)
-		return val_u4
+		//write out reversed bits
+		for (var j = 0; j < piBitLen; j++) {
+			this.writeFlag((iRev & 1) === 1)
+			iRev = iRev	 >> 1
+		}
 	}
 
+	//******** FLAG  **************************************************************
 	/**
 	 * Reads a boolean value from the bitstream.
 	 * @public
@@ -467,6 +517,7 @@ class jsbitstream {
 		return val_boolean
 	}
 
+	//******** Bits  **************************************************************
 	/**
 	 * Reads an arbitrary amount of bits and returns it as a jsbitstream object. This always reads from bitOffset. The
 	 * final portion of the stream that was read is then shifted to have a 0 offset before converting to a type.
@@ -597,6 +648,9 @@ class jsbitstream {
 		}
 	}
 
+	//**********************************************************************
+	// UTILS
+	//**********************************************************************
 	/**
 	 * Returns the number of bits within the stream.
 	 * @return {Number} teh number of bits within the stream.
